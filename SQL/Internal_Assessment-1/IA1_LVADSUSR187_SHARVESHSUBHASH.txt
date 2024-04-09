@@ -1,0 +1,47 @@
+Q1
+select @avgs:=avg(dataused), month from ia1.customerinteractions where month="March";
+select customerid from ia1.customerinteractions where month="March" and year=2024 and dataused > @avgs;
+/*only customer_id 201 and 205 come under the above conditions as per result.*/
+
+Q2
+select customerid, month, sum(callduration) total_duration from ia1.customerinteractions 
+group by customerid,month;
+-- Clearly, customer_id 206 has increased from 100 in Febraury to 200 in March
+
+Q3
+select customerid, month, sum(MessageCount), sum(DataUsed) as total_dataUsage from ia1.customerinteractions 
+group by customerid,month;
+-- Clearly, customer_id 206 has decreased messagecount from 150 in Febraury to 100 in March along with
+-- increasing data usage from 1 in Feb to 2 in March. 
+
+Q4
+Assuming that the totalsalesamount in the table signifies the total sales for the total number of units sold.
+select producttypeID, sum(totalsalesamount) from quarterlysales where ProductTypeID=1;    
+
+Q5
+select producttypeid from (select q.ProductTypeID, sum(q.TotalSalesAmount) as total from quarterlysales 
+as q where quarter='Q1' group by producttypeid 
+) as t1 order by total desc limit 1 ;
+
+Q6
+select totalsalesamount/unitssold from quarterlysales where producttypeid = 1 and quarter="Q2" AND Year=2024;
+
+Q7
+select @avgs := avg(consumptionKWh) from SectorEnergyConsumption where month= "March" and energysource="Solar" and energysource="Wind";
+select region, sum(consumptionkwh) as total from SectorEnergyConsumption where month ="March" and energysource <> "Fossil Fuels" group by region having 
+total > @avgs;
+
+Q8
+select sector,month,sum(consumptionkwh) as total_consumption from SectorEnergyConsumption group by
+sector,month order by total_consumption ; 
+
+Q9
+select energysource, sum(consumptionkwh) from SectorEnergyConsumption where month="February" group by
+energysource;
+
+Q12:
+select policytype, sum(claimscount) , avg(FeedbackScore) from InsuranceActivities group by policytype;
+
+Q11:
+
+
