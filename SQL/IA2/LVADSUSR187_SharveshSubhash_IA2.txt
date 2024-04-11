@@ -1,0 +1,69 @@
+Q1
+select machine_id, cost from l1_maintenance_records where 
+cost > (select avg(cost) from l1_maintenance_records  where 
+monthname(maintenance_date)="March" and year(maintenance_date)=2024) 
+and monthname(maintenance_date)="March" 
+and year(maintenance_date)=2024;
+
+Q2
+select maintenance_type, count(machine_id) as 'number of machines' from l1_maintenance_records
+where monthname(maintenance_date)="March" and year(maintenance_date)=2024
+group by maintenance_type;
+
+Q3
+select technician_name, count(maintenance_id) as tasks from l1_maintenance_records
+where monthname(maintenance_date)="March" and year(maintenance_date)=2024
+group by technician_name order by tasks desc limit 1;
+
+select technician_name, sum(cost)/count(maintenance_id) as Avg_cost_per_task from l1_maintenance_records
+where monthname(maintenance_date)="March" and year(maintenance_date)=2024
+group by technician_name order by cost_per_task desc limit 1;
+
+
+Q4
+select product_id, (avg(incident_count_pre_update-incident_count_post_update))
+as "Average_incident_count_reduction_after_update"
+from l2_updates group by product_id;
+
+Q5
+select T2.update_id, T1.update_id, (t2.user_feedback_score - t1.user_feedback_score) as diff from
+(select update_id, user_feedback_score from l2_updates) as T1
+,(select update_id, user_feedback_score from l2_updates) as T2
+where T1.update_id <> T2.update_id
+order by diff desc;
+
+"This will give all combinations of differences beween updates, from this we can find the consecutive update_id
+differences and get the consecutive combination of updates with the highest difference in user satisfaction score"
+
+
+Q6.
+select product_id, sum(incident_count_pre_update-incident_count_post_update) as least_improvement
+from l2_updates group by product_id order by least_improvement asc;
+
+Q7.
+create view p_v_t_view as 
+(select * from l3_patients p
+ join l3_visits v on  p.l3_patient_id = v.l3_visit_id
+ join l3_facilities f on f.l3_facilities_id = v.l3_facilities_id
+ join l3_treatments t on f.l3_treatment_id = t.l3_treatment_id
+ where monthname(v.visit_date)="March" and year(v.visit_date)=2024
+);
+select * from p_v_T_view;
+
+
+Q8.
+select facility_name, count(reason_for_visit) from
+l3_facilities f join  l3_visits v on f.facility_id = v.facility_id
+where monthname(v.visit_date)="March" and year(v.visit_date)=2024 and reason_for_visit="Emergency"
+group by f.facility_name; 
+
+Q9.
+
+
+Q10.
+Q11.
+Q12.
+
+
+
+
