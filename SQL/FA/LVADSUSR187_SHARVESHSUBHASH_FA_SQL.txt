@@ -1,0 +1,121 @@
+Q1.
+select product_category, sum(sales_amount) from
+products p join sales_records s on p.product_id = s.product_id
+where s.sales_date >= date_sub(curdate(), interval 30 day)
+group by product_category;
+
+Q2.
+select p.product_id, p.product_name, sales_amount, rank() over(order by sales_amount desc)
+as sale_rank from sales_records s join products p on s.product_id = p.product_id
+ limit 3;
+
+Q3.
+with A as (select customer_id, sum(sales_amount) as s,
+percent_rank() over(order by sum(sales_amount)) as percent__rank
+from sales_records group by customer_id)
+select customer_id, s as total_sales, percent__rank as percent_contributed
+ , rank() over(order by percent__rank desc) as ranking from A;
+
+Q4.
+with A as (select distinct customer_id, sales_date, month(sales_date), count(sales_date) over(partition by customer_id order by 
+month(sales_Date)) as count_ from sales_records)
+select distinct customer_id, case 
+when A.count_>=4 and A.sales_date between curdate() and date_sub(curdate(),interval 6 month)
+then "Consistent Buyers"
+else "Occasional Buyers"
+end as Customer_Classification
+from A ;   
+
+Q5.
+select f.departure_airport, f.arrival_airport, 
+avg(t.ticket_price) from tickets t join flights f on t.flight_id = f.flight_id
+ group by f.departure_airport, f.arrival_airport ;
+
+Q6.
+select flight_number, departure_date,
+tickets_sold from (select f.flight_number,
+f.departure_date, t.ticket_price,
+count(t.ticket_id) as tickets_sold
+from tickets t join flights f on t.flight_id = f.flight_id
+where t.ticket_date > date_sub(curdate(), interval 1 month)
+group by f.flight_number, f.departure_date, t.ticket_price order by 
+t.ticket_price desc) A;
+
+Q7.
+with A as (select t.passenger_id, p.passenger_name,
+ sum(t.ticket_price) as amount_spent, p.frequent_flyer_status 
+from tickets t join passengers p on t.passenger_id = p.passenger_id
+group by t.passenger_id order by amount_spent desc limit 5)
+select passenger_name,amount_spent, frequent_flyer_status
+from A ;
+
+Q8.
+select monthname(ticket_date) as MONTH, 
+count(ticket_id) as count_of_tickets
+from tickets
+group by monthname(ticket_date) order by
+count_of_tickets desc limit 1;
+
+Q9.
+select p.player_id, g.game_genre, avg(time(py.registration_date - play_date))
+as Avg_time from 
+games g join playerscores p on g.game_id = p.game_id
+join players py on p.player_id = py.player_id
+group by p.player_id, g.game_genre
+order by avg_time desc ;
+
+Q10.
+select g.game_name, count(p.player_id) as count_of_players from
+playerscores p join games g on p.game_id = g.game_id
+group by g.game_name order by count_of_players desc limit 3;
+
+Q11.
+select g.game_name, avg(score) as avg_score, max(score) as max_score,
+count(player_id) as count_of_players from
+playerscores p join games g on p.game_id = g.game_id
+ group by g.game_name;  
+
+
+Q12.
+-- My Primary solution ---
+ with A as (select player_id, monthname(play_date) as month, count(play_date) as count_ from
+playerscores group by player_id, monthname(play_date))
+
+select T1.player_id, last_active_month from
+(select player_id, max(month) as last_active_month from A where
+count_ > 1 group by player_id)T1 where
+last_active_month < month(curdate());
+--- Alternate solution-----------
+select distinct player_id from playerscores
+where play_date <date_sub(curdate(), interval 30 day)
+and play_date between curdate() and date_sub(curdate(), interval 30 day);
+
+Q13.
+select doctor_id, sum(cost) as cost_of_order from treatments
+group by doctor_id order by cost_of_order desc limit 5;
+
+
+Q14.
+with A as(select treatment_id, sum(cost) as total from treatments group by treatment_id)
+select *, percent_rank() over(order by total) as 
+percent_contributed_to_revenue from A order by total desc;
+
+
+Q15.
+select patient_id, patient_name, admission_date, discharge_date
+from patients where datediff(admission_date, discharge_date)< 30
+and admission_date > discharge_date
+group by patient_id order by admission_date;
+
+Q16.
+
+with A as (select gender, diagnosis, datediff( discharge_date, admission_date) as los
+from treatments t join patients p on p.patient_id = t.patient_id)
+select gender, diagnosis, avg(los) over(partition by A.gender, A.diagnosis) as AVG_LOS from A;
+
+Q17.
+select distinct department, semester, avg(grade) over(partition by semester, department)
+from courses c join enrollments e on c.course_id = e.course_id;
+
+Q18.
+
